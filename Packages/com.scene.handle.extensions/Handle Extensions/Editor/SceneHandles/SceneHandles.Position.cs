@@ -14,7 +14,7 @@ namespace UnitySceneExtensions
 		internal static int s_centerMoveHandleHash  = "centerFreeMoveHandleHash".GetHashCode();
 
 
-		public static Vector3[] PositionHandle(Vector3[] points, Vector3 position, Quaternion rotation, Axes enabledAxes = Axes.XYZ)
+		public static Vector3[] PositionHandle(Vector3[] points, Vector3 position, Quaternion rotation, Axes enabledAxes = Axes.XYZ, bool snappingEnabled = true)
 		{
 			GUI.SetNextControlName("xAxis");   var xAxisId   = GUIUtility.GetControlID (s_xAxisMoveHandleHash, FocusType.Passive);
 			GUI.SetNextControlName("yAxis");   var yAxisId   = GUIUtility.GetControlID (s_yAxisMoveHandleHash, FocusType.Passive);
@@ -122,15 +122,18 @@ namespace UnitySceneExtensions
 
 			SceneHandles.disabled = xAxisDisabled;
 			SceneHandles.color = xAxisColor;
-			points = Slider1DHandle(xAxisId, Axis.X, points, position, rotation * Vector3.right,   Snapping.MoveSnappingSteps.x, handleSize, ArrowHandleCap, selectLockingAxisOnClick: true);
+			var snapDistanceX = snappingEnabled?Snapping.MoveSnappingSteps.x:0f;
+			points = Slider1DHandle(xAxisId, Axis.X, points, position, rotation * Vector3.right,   snapDistanceX, handleSize, ArrowHandleCap, selectLockingAxisOnClick: true);
 			   
 			SceneHandles.disabled = yAxisDisabled;
 			SceneHandles.color = yAxisColor;
-			points = Slider1DHandle(yAxisId, Axis.Y, points, position, rotation * Vector3.up,      Snapping.MoveSnappingSteps.y, handleSize, ArrowHandleCap, selectLockingAxisOnClick: true);
+			var snapDistanceY = snappingEnabled?Snapping.MoveSnappingSteps.y:0f;
+			points = Slider1DHandle(yAxisId, Axis.Y, points, position, rotation * Vector3.up,      snapDistanceY, handleSize, ArrowHandleCap, selectLockingAxisOnClick: true);
 			
 			SceneHandles.disabled = zAxisDisabled;
 			SceneHandles.color = zAxisColor;
-			points = Slider1DHandle(zAxisId, Axis.Z, points, position, rotation * Vector3.forward, Snapping.MoveSnappingSteps.z, handleSize, ArrowHandleCap, selectLockingAxisOnClick: true);
+			var snapDistanceZ = snappingEnabled?Snapping.MoveSnappingSteps.z:0f;
+			points = Slider1DHandle(zAxisId, Axis.Z, points, position, rotation * Vector3.forward, snapDistanceZ, handleSize, ArrowHandleCap, selectLockingAxisOnClick: true);
 
 
 			SceneHandles.disabled = xzPlaneDisabled;
@@ -164,9 +167,9 @@ namespace UnitySceneExtensions
 			return points;
 		}
 
-		public static Vector3 PositionHandle(Vector3 position, Quaternion rotation, Axes enabledAxes = Axes.XYZ)
+		public static Vector3 PositionHandle(Vector3 position, Quaternion rotation, Axes enabledAxes = Axes.XYZ, bool snappingEnabled = true)
 		{
-			return PositionHandle(new[] { position }, position, rotation, enabledAxes)[0];
+			return PositionHandle(new[] { position }, position, rotation, enabledAxes, snappingEnabled)[0];
 		}
 	}
 }
