@@ -8,12 +8,12 @@ namespace UnitySceneExtensions
 		static Vector3		s_PlanarHandlesOctant	= Vector3.one;
 		static Vector3[]	s_Vertices				= new Vector3[4];
 
-		static Vector3 PlanarHandle(int id, PlaneAxes planarAxes, Vector3 position, Quaternion rotation, float handleSize, bool selectLockingAxisOnClick = false)
+		static Vector3 PlanarHandle(int id, PlaneAxes planarAxes, Vector3 position, Quaternion rotation, float handleSize, bool selectLockingAxisOnClick = false, bool noSnapping = false)
 		{
-			return PlanarHandle(id, planarAxes, new Vector3[] { position }, position, rotation, handleSize, selectLockingAxisOnClick)[0];
+			return PlanarHandle(id, planarAxes, new Vector3[] { position }, position, rotation, handleSize, selectLockingAxisOnClick, noSnapping)[0];
 		}
 
-		static Vector3[] PlanarHandle(int id, PlaneAxes planarAxes, Vector3[] points, Vector3 position, Quaternion rotation, float handleSize, bool selectLockingAxisOnClick = false)
+		static Vector3[] PlanarHandle(int id, PlaneAxes planarAxes, Vector3[] points, Vector3 position, Quaternion rotation, float handleSize, bool selectLockingAxisOnClick = false, bool noSnapping = false)
 		{
 			int axis1index = 0;
 			int axis2index = 0;
@@ -70,7 +70,7 @@ namespace UnitySceneExtensions
 			if (!isStatic && !SceneHandles.disabled)
 				SceneHandles.DrawSolidRectangleWithOutline(s_Vertices, innerColor, outerColor);
 
-			points = Slider2DHandle(id, points, position, handleOffset, axisNormal, axis1, axis2, handleSize * 0.5f, RectangleHandleCap, axes, selectLockingAxisOnClick);
+			points = Slider2DHandle(id, points, position, handleOffset, axisNormal, axis1, axis2, handleSize * 0.5f, RectangleHandleCap, axes, selectLockingAxisOnClick, null, noSnapping);
 
 			SceneHandles.color = prevColor;
 
