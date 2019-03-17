@@ -132,6 +132,8 @@ namespace Chisel.Editors
                 // GUI.Label(dragArea, angle.ToString());
                 // UnitySceneExtensions.SceneHandles.
             }
+
+            // CSGSurfaceEditModeGUI.OnSceneGUI(sceneView, dragArea);
         }
 
         static bool ClickSelection(Rect dragArea, SelectionType selectionType)
@@ -258,7 +260,8 @@ namespace Chisel.Editors
             var surfaceIntersection = CSGClickSelectionManager.FindSurfaceIntersection(mousePosition);
             if (lastID != surfaceIntersection.surface.surfaceID) { 
                 lastID = surfaceIntersection.surface.surfaceID;
-                OnNewSurfaceSelected(mousePosition, surfaceIntersection.surface);
+                // InitToolFirstClick(mousePosition, surfaceIntersection);
+                OnNewSurfaceSelected(mousePosition, surfaceIntersection);
             }
         }
 
@@ -268,14 +271,6 @@ namespace Chisel.Editors
             GUIUtility.hotControl = 0;
             GUIUtility.keyboardControl = 0;
             Event.current.Use();
-        }
-
-        // Called when the clicked surface has changed
-        static void OnNewSurfaceSelected(Vector2 mousePosition, SurfaceReference surfaceReference)
-        {
-            hasRotatePivot = true;
-            GetCurrentPlaneMousePosition(mousePosition, surfaceReference, out rotatePivot);
-            planeOrientation = Quaternion.LookRotation(surfaceReference.Orientation.BiNormal, surfaceReference.Orientation.Tangent);
         }
 
         static bool GetCurrentPlaneMousePosition(Vector2 mousePosition, SurfaceReference surfaceReference, out Vector3 position)
@@ -364,8 +359,8 @@ namespace Chisel.Editors
             return true;
         }
 
-        static SurfaceIntersection	startSurfaceIntersection;
-        static SurfaceReference[]	selectedSurfaceReferences;
+        internal static SurfaceIntersection	startSurfaceIntersection;
+        internal static SurfaceReference[]	selectedSurfaceReferences;
         static CSGBrushMeshAsset[]	selectedBrushMeshAsset;
         static UVMatrix[]			selectedUVMatrices;
         static Plane                worldDragPlane;
@@ -375,41 +370,51 @@ namespace Chisel.Editors
 
         private static void InitToolFirstClick(Vector2 mousePosition)
         {
-            startSurfaceIntersection	= CSGClickSelectionManager.FindSurfaceIntersection(mousePosition);
+            // startSurfaceIntersection	= CSGClickSelectionManager.FindSurfaceIntersection(mousePosition);
+            GetCurrentPlaneMousePosition(mousePosition, startSurfaceIntersection.surface, out worldStartPosition);
+
+            for (int i = 0; i < selectedSurfaceReferences.Length; i++)
+                selectedUVMatrices[i] = selectedSurfaceReferences[i].Polygon.description.UV0;
+        }
+
+        // Called when the clicked surface has changed
+        static void OnNewSurfaceSelected(Vector2 mousePosition, SurfaceIntersection surfaceReference)
+        {   
+            hasRotatePivot = true;
+            GetCurrentPlaneMousePosition(mousePosition, surfaceReference.surface, out rotatePivot);
+            // rotatePivot = worldStartPosition;
+            // lastPosition = worldStartPosition;
+            var matrix = surfaceReference.surface.node.hierarchyItem.LocalToWorldMatrix;
+            worldProjectionPlane = matrix.TransformPlane(surfaceReference.surface.Orientation.plane);
+            worldDragPlane		= worldProjectionPlane;
+            planeOrientation = Quaternion.LookRotation(surfaceReference.surface.Orientation.BiNormal, surfaceReference.surface.Orientation.Tangent);   
+            startSurfaceIntersection = surfaceReference;
+
             selectedSurfaceReferences	= CSGSurfaceSelectionManager.Selection.ToArray();
             selectedBrushMeshAsset		= CSGSurfaceSelectionManager.SelectedBrushMeshes.ToArray();
             selectedUVMatrices			= new UVMatrix[selectedSurfaceReferences.Length];
 
-            for (int i = 0; i < selectedSurfaceReferences.Length; i++)
-                selectedUVMatrices[i] = selectedSurfaceReferences[i].Polygon.description.UV0;
-                        
-            var nodeTransform		= startSurfaceIntersection.surface.node.hierarchyItem.Transform;
-            var modelTransform		= CSGNodeHierarchyManager.FindModelTransformOfTransform(nodeTransform);
-
-            worldStartPosition		= modelTransform.localToWorldMatrix.MultiplyPoint (startSurfaceIntersection.intersection.worldIntersection);
-            worldProjectionPlane	= modelTransform.localToWorldMatrix.TransformPlane(startSurfaceIntersection.intersection.worldPlane);
             
-            // more accurate for small movements
-            worldDragPlane		= worldProjectionPlane;
-
-            // (unfinished) prevents drag-plane from intersecting near plane (makes movement slow down to a singularity when further away from click position)
-            //worldDragPlane	= new Plane(Camera.current.transform.forward, worldStartPosition); 
-
-            // TODO: ideally we'd interpolate the behaviour of the worldPlane between near and far behavior
         }
 
         private static Vector3 GetCurrentWorldClick(Vector2 mousePosition)
         {
-            var currentWorldIntersection = worldStartPosition;
+            Vector3 output;
+            if (GetCurrentPlaneMousePosition(mousePosition, startSurfaceIntersection.surface, out output)) {
+                return output;
+            } else {
+                return worldStartPosition;
+            }
+            // var currentWorldIntersection = worldStartPosition;
                     
-            // TODO: snapping?
-            var mouseRay = HandleUtility.GUIPointToWorldRay(mousePosition);
-            var enter = 0.0f;
-            if (worldDragPlane.UnsignedRaycast(mouseRay, out enter))
-                currentWorldIntersection = mouseRay.GetPoint(enter);
+            // // TODO: snapping?
+            // var mouseRay = HandleUtility.GUIPointToWorldRay(mousePosition);
+            // var enter = 0.0f;
+            // if (worldDragPlane.UnsignedRaycast(mouseRay, out enter))
+            //     currentWorldIntersection = mouseRay.GetPoint(enter);
 
 
-            return currentWorldIntersection;
+            // return currentWorldIntersection;
         }
 
         private static bool SurfaceScaleTool(SelectionType selectionType, Rect dragArea)
@@ -438,8 +443,8 @@ namespace Chisel.Editors
                         break;
                     
                     jumpedMousePosition += evt.delta;
-                    if (!ToolIsDragging)
-                        InitToolFirstClick(jumpedMousePosition);
+                    // if (!ToolIsDragging)
+                    //     InitToolFirstClick(jumpedMousePosition);
                     ToolIsDragging = true;
                     evt.Use();
                     
@@ -467,9 +472,10 @@ namespace Chisel.Editors
         static bool haveRotateStartAngle	= false;
         static Vector3 startVector;
         static Vector3 rotatePivot;
+        static Vector3 lastPosition;
         static Quaternion planeOrientation;
         static bool hasRotatePivot = false;
-        const float kMinRotateDiameter		= 0.25f;// * 25.0f;
+        const float kMinRotateDiameter		= 0.45f;// * 25.0f;
         private static bool SurfaceRotateTool(SelectionType selectionType, Rect dragArea)
         {
             var id = GUIUtility.GetControlID(kSurfaceRotateHash, FocusType.Keyboard, dragArea);
@@ -487,6 +493,8 @@ namespace Chisel.Editors
                 {
                     if (!CanEnableTool(id))
                         break;
+                    
+                    ClickSelection(dragArea, selectionType);
                     EnableTool(id, evt.mousePosition);
                     break;
                 }
@@ -512,45 +520,48 @@ namespace Chisel.Editors
 
                     Vector3 currentPosition;
                     GetCurrentPlaneMousePosition(jumpedMousePosition, startSurface, out currentPosition);
-                    var worldSpaceMovement = rotatePivot - currentPosition;
 
-                    var localNormal					= startSurface.node.hierarchyItem.Transform.worldToLocalMatrix.
-                                                        MultiplyVector(worldDragPlane.normal);
+                    var pivotInLocalSpace = rotatePivot;//startSurface.node.hierarchyItem.WorldToLocalMatrix.MultiplyPoint(rotatePivot);
 
-                    Vector3 tangent;
-                    Vector3 biNormal;
-                    MathExtensions.CalculateTangents(worldDragPlane.normal, out tangent, out biNormal);
-
-                    var projectedWorldMovement = tangent  * Vector3.Dot(tangent,  worldSpaceMovement) +
-                                                 biNormal * Vector3.Dot(biNormal, worldSpaceMovement);
                     
-                    // var projectedWorldMovement = rotatePivot - offsetPosition;
-                    if (UnitySceneExtensions.Snapping.AxisLockX) projectedWorldMovement.x = 0;
-                    if (UnitySceneExtensions.Snapping.AxisLockY) projectedWorldMovement.y = 0;
-                    if (UnitySceneExtensions.Snapping.AxisLockZ) projectedWorldMovement.z = 0;
 
 
                     if (!haveRotateStartAngle)
                     {
-                        var handleSize		= HandleUtility.GetHandleSize(worldStartPosition);	
-                        var minDiameterSqr	= handleSize * kMinRotateDiameter;
-                        if (projectedWorldMovement.sqrMagnitude > minDiameterSqr)
-                        {
+                        // var handleSize		= HandleUtility.GetHandleSize(worldStartPosition);	
+                        // var minDiameterSqr	= handleSize * kMinRotateDiameter;
+                        // if (projectedWorldMovement.sqrMagnitude > minDiameterSqr)
+                        // {
                             haveRotateStartAngle = true;
-                            startVector = projectedWorldMovement;
-                        }
+                            startVector = currentPosition;
+                        // }
                     } else
                     {
-                        var matrix = startSurface.node.hierarchyItem.LocalToWorldMatrix;
-                        var newPlane = matrix.TransformPlane(startSurface.Orientation.plane);
-                        var deltaAngle			= MathExtensions.SignedAngle(startVector, projectedWorldMovement, startSurface.Orientation.plane.normal);
-                        // Debug.Log(deltaAngle);
-                        var worldSpaceRotationQ	= Quaternion.AngleAxis(deltaAngle, newPlane.normal);
+
+                        var worldSpaceMovement = currentPosition - startVector;
+
+                        Vector3 tangent;
+                        Vector3 biNormal;
+                        MathExtensions.CalculateTangents(worldProjectionPlane.normal, out tangent, out biNormal);
+
+                        var projectedWorldMovement = tangent  * Vector3.Dot(tangent,  worldSpaceMovement) +
+                                                    biNormal * Vector3.Dot(biNormal, worldSpaceMovement);
+                        
+                        // var projectedWorldMovement = rotatePivot - offsetPosition;
+                        if (UnitySceneExtensions.Snapping.AxisLockX) projectedWorldMovement.x = 0;
+                        if (UnitySceneExtensions.Snapping.AxisLockY) projectedWorldMovement.y = 0;
+                        if (UnitySceneExtensions.Snapping.AxisLockZ) projectedWorldMovement.z = 0;
+
+                        var deltaAngle			= MathExtensions.SignedAngle(rotatePivot, projectedWorldMovement, worldProjectionPlane.normal);
+                        // deltaAngle = 0f;
+                        Debug.Log(deltaAngle);
+                        var worldSpaceRotationQ	= Quaternion.AngleAxis(deltaAngle, worldDragPlane.normal);
+
                         var worldspaceRotation	= Matrix4x4.TRS( rotatePivot, Quaternion.identity, Vector3.one) *
                                                   Matrix4x4.TRS(Vector3.zero, worldSpaceRotationQ, Vector3.one) *
                                                   Matrix4x4.TRS(-rotatePivot, Quaternion.identity, Vector3.one)
                                                   ;
-                        var deltaRadians		= deltaAngle * Mathf.Deg2Rad;
+                        // var deltaRadians		= deltaAngle * Mathf.Deg2Rad;
 
                         Undo.RecordObjects(selectedBrushMeshAsset, "Rotate UV coordinates"); 
                         for (int i = 0; i < selectedSurfaceReferences.Length; i++) 
@@ -568,15 +579,15 @@ namespace Chisel.Editors
                             rotationInWorldSpace = Matrix4x4.TRS(Vector3.zero, rotateToPlane, Vector3.one) * rotationInWorldSpace;
 
                             var uvMatrix = selectedUVMatrices[i];
-                            
+
                             var vectorU = rotationInWorldSpace.MultiplyVector(uvMatrix.U);
                             var vectorV = rotationInWorldSpace.MultiplyVector(uvMatrix.V);
                             var center	= rotationInWorldSpace.MultiplyPoint((uvMatrix.U.w * (Vector3)uvMatrix.U) + (uvMatrix.V.w * (Vector3)uvMatrix.V));
-
+                            // Debug.Log(center);
                             uvMatrix.U = vectorU;
                             uvMatrix.V = vectorV;
-                            uvMatrix.U.w = -Vector3.Dot(vectorU, center); 
-                            uvMatrix.V.w = -Vector3.Dot(vectorV, center);
+                            uvMatrix.U.w = 1-Vector3.Dot(vectorU, center); 
+                            uvMatrix.V.w = 1-Vector3.Dot(vectorV, center);
                             
                             polygon.description.UV0 = uvMatrix;
 
@@ -593,9 +604,9 @@ namespace Chisel.Editors
                         break;
 
                     DisableTool();
-                    selectedSurfaceReferences = null;
-                    selectedBrushMeshAsset = null;
-                    selectedUVMatrices = null;
+                    // selectedSurfaceReferences = null;
+                    // selectedBrushMeshAsset = null;
+                    // selectedUVMatrices = null;
                     break;
                 }
             }
@@ -688,9 +699,9 @@ namespace Chisel.Editors
                         break;
 
                     DisableTool();
-                    selectedSurfaceReferences = null;
-                    selectedBrushMeshAsset = null;
-                    selectedUVMatrices = null;
+                    // selectedSurfaceReferences = null;
+                    // selectedBrushMeshAsset = null;
+                    // selectedUVMatrices = null;
                     break;
                 }
             }
