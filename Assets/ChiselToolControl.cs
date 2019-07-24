@@ -1,6 +1,7 @@
 using ChiselHandles;
 using UnityEditor;
 using UnityEngine;
+using Chisel.Editors;
 
 enum ChiselToolState
 {
@@ -8,14 +9,28 @@ enum ChiselToolState
     Modify
 }
 
-class ChiselToolControl
+class ChiselToolControl : ChiselGeneratorToolMode
 {
+    public override string ToolName { get { return "Too."; } }
+    // public bool ShowCompleteOutline { get { return false; } }
+    // public bool CanSelectSurfaces { get { return false; } }
+    // public bool EnableComponentEditors { get { return false; } }
+    public override void OnDisable() {
+        currentTool = null;
+        toolState = ChiselToolState.Create;
+        currentHandle = null;
+    }
+    public override void OnEnable() {
+        currentTool = new BoxTool();
+        toolState = ChiselToolState.Create;
+        currentHandle = null;
+    }
 
-    static IChiselTool currentTool;
-    static IChiselHandle currentHandle;
-    static ChiselToolState toolState;
+    IChiselTool currentTool;
+    IChiselHandle currentHandle;
+    ChiselToolState toolState;
 
-    static void OnSceneGUI(SceneView sceneView, Rect dragArea)
+    public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
     {
         switch (toolState) {
             case ChiselToolState.Create:
@@ -30,7 +45,7 @@ class ChiselToolControl
         }
     }
 
-    static void CreateUpdate(SceneView sceneView, Rect dragArea)
+    void CreateUpdate(SceneView sceneView, Rect dragArea)
     {
         if (currentHandle == null) {
             currentHandle = currentTool.OnCreate();
@@ -62,24 +77,26 @@ class ChiselToolControl
         }
     }
 
-    static void ModifyUpdate(SceneView sceneView, Rect dragArea)
+    void ModifyUpdate(SceneView sceneView, Rect dragArea)
     {
         currentHandle.OnSceneGUI(sceneView, dragArea);
     }
 
     // Finished the creation step
-    static void OnCreated()
+    void OnCreated()
     {
+        Debug.Log("On Created");
         currentHandle = currentHandle.Next();
 
         if (currentHandle == null) {
+            Debug.Log("yo");
             currentHandle = currentTool.OnModify();
             toolState = ChiselToolState.Modify;
         }
     }
 
     // Some validation failed
-    static void OnCancelled()
+    void OnCancelled()
     {
         // Go back to the start of the flow
         currentHandle = null;
@@ -91,7 +108,7 @@ class ChiselToolControl
     }
     
     // This would be called by the shape edit mode, when an object is selected that has an associated IChiselTool
-    static void OnSelect(IChiselTool tool)
+    void OnSelect(IChiselTool tool)
     {
         toolState = ChiselToolState.Modify;
         currentTool = tool;

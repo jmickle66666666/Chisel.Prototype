@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ChiselHandles;
+using Chisel.Editors;
 
 public interface IChiselTool
 {

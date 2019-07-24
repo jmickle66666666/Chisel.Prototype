@@ -49,12 +49,16 @@ namespace ChiselHandles {
             {
                 // Work some magic
 
-                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape) { 
+                var evt = Event.current;
+
+                if (evt.type == EventType.KeyDown && evt.keyCode == KeyCode.Escape) { 
                     return ChiselHandleState.Cancelled;
                 }
 
-                if (Event.current.type == EventType.MouseDown) { 
+                if (evt.type == EventType.MouseDown) { 
                     points.Add(Vector3.zero); // add current mouse point
+                    Debug.Log("hey");
+                    evt.Use();
                 }
 
                 if (points.Count == 2) { 
@@ -74,15 +78,17 @@ namespace ChiselHandles {
                 this.shape = shape;
                 this.nextHandle = nextHandle;
 
-                extrudePoints = new List<Vector3>(2);
+                extrudePoints = new List<Vector3>();
                 
-                extrudePoints[0] = shape[0];
+                extrudePoints.Add(shape[0]);
                 for (int i = 1; i < shape.Length; i++) {
                     extrudePoints[0] += shape[i];
                 }
                 extrudePoints[0] /= shape.Length;
 
-                extrudePoints[1] = extrudePoints[0];
+                extrudePoints.Add(extrudePoints[0]);
+
+                Debug.Log("yah");
             }
 
             public static IChiselHandle Create(Vector3[] shape, Func<Vector3[], IChiselHandle> nextHandle)
@@ -95,18 +101,23 @@ namespace ChiselHandles {
                 // Work some magic
                 PointDrawing.PointDrawHandle(dragArea, ref extrudePoints, out Matrix4x4 transformation, out ChiselModel model, UnitySceneExtensions.SceneHandles.OutlinedDotHandleCap);
 
-                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape) { 
+                var evt = Event.current;
+
+                if (evt.type == EventType.KeyDown && evt.keyCode == KeyCode.Escape) { 
                     return ChiselHandleState.Cancelled;
                 }
 
-                if (Event.current.type == EventType.MouseUp) { 
+                if (evt.type == EventType.MouseUp) { 
+                    Debug.Log("word");
                     return ChiselHandleState.Finished;
                 }
+
                 return ChiselHandleState.Processing;
             }
 
             public IChiselHandle Next()
             {
+                Debug.Log("Yah");
                 if (nextHandle == null) {
                     return null;
                 }
