@@ -12,8 +12,9 @@ class BoxTool : IChiselTool
     {
         return ChiselHandles.Creators.DrawRectangle.Create(
             (rect) => { return ChiselHandles.Creators.Extrude.Create(rect,
-                (length) => {
+                (boxPoints) => {
                     // this.boxBounds = GetBoundsFromExtrusion(rect, length);
+
                     return null;
                 } );
             }

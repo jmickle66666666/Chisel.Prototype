@@ -1,5 +1,6 @@
 using ChiselHandles;
 using UnityEditor;
+using UnityEngine;
 
 enum ChiselToolState
 {
@@ -14,14 +15,14 @@ class ChiselToolControl
     static IChiselHandle currentHandle;
     static ChiselToolState toolState;
 
-    static void OnSceneGUI(SceneView sceneView)
+    static void OnSceneGUI(SceneView sceneView, Rect dragArea)
     {
         switch (toolState) {
             case ChiselToolState.Create:
-                CreateUpdate(sceneView);
+                CreateUpdate(sceneView, dragArea);
                 break;
             case ChiselToolState.Modify:
-                ModifyUpdate(sceneView);
+                ModifyUpdate(sceneView, dragArea);
                 break;
             default:
                 // I hate switch statements
@@ -29,7 +30,7 @@ class ChiselToolControl
         }
     }
 
-    static void CreateUpdate(SceneView sceneView)
+    static void CreateUpdate(SceneView sceneView, Rect dragArea)
     {
         if (currentHandle == null) {
             currentHandle = currentTool.OnCreate();
@@ -40,7 +41,7 @@ class ChiselToolControl
         }
 
         EditorGUI.BeginChangeCheck();
-        var state = currentHandle.OnSceneGUI(sceneView);
+        var state = currentHandle.OnSceneGUI(sceneView, dragArea);
 
         if (EditorGUI.EndChangeCheck())
         {
@@ -61,17 +62,20 @@ class ChiselToolControl
         }
     }
 
-    static void ModifyUpdate(SceneView sceneView)
+    static void ModifyUpdate(SceneView sceneView, Rect dragArea)
     {
-        currentHandle.OnSceneGUI(sceneView);
+        currentHandle.OnSceneGUI(sceneView, dragArea);
     }
 
     // Finished the creation step
     static void OnCreated()
     {
+        currentHandle = currentHandle.Next();
 
-        currentHandle = currentTool.OnModify();
-        toolState = ChiselToolState.Modify;
+        if (currentHandle == null) {
+            currentHandle = currentTool.OnModify();
+            toolState = ChiselToolState.Modify;
+        }
     }
 
     // Some validation failed
