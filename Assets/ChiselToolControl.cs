@@ -22,9 +22,12 @@ class ChiselToolControl : ChiselGeneratorToolMode
     }
     public override void OnEnable() {
         currentTool = new BoxTool();
+        controlID = GUIUtility.GetControlID($"ToolControl {currentTool.name}".GetHashCode(), FocusType.Keyboard);
         toolState = ChiselToolState.Create;
         currentHandle = null;
     }
+
+    int controlID;
 
     IChiselTool currentTool;
     IChiselHandle currentHandle;
@@ -32,6 +35,8 @@ class ChiselToolControl : ChiselGeneratorToolMode
 
     public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
     {
+        base.OnSceneGUI(sceneView, dragArea);
+
         switch (toolState) {
             case ChiselToolState.Create:
                 CreateUpdate(sceneView, dragArea);
@@ -85,11 +90,9 @@ class ChiselToolControl : ChiselGeneratorToolMode
     // Finished the creation step
     void OnCreated()
     {
-        Debug.Log("On Created");
         currentHandle = currentHandle.Next();
 
         if (currentHandle == null) {
-            Debug.Log("yo");
             currentHandle = currentTool.OnModify();
             toolState = ChiselToolState.Modify;
         }

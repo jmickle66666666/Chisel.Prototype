@@ -6,6 +6,7 @@ using Chisel.Editors;
 
 public interface IChiselTool
 {
+    string name { get; }
     IChiselHandle OnCreate();
     IChiselHandle OnModify();
     void OnBuild();
