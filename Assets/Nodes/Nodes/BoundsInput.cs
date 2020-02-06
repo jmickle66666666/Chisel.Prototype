@@ -11,11 +11,12 @@ public class BoundsInput : Node {
 		
 	}
 
-	[Output] public Bounds bounds;
+	public Bounds bounds;
+	[Output] public Bounds output;
 
 	// Return the correct value of an output port when requested
 	public override object GetValue(NodePort port) {
-		if (port.fieldName == "bounds") return bounds;
+		if (port.fieldName == "output") return bounds;
 		return null; // Replace this
 	}
 }

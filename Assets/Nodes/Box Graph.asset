@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: Bounds Input
   m_EditorClassIdentifier: 
   graph: {fileID: 11400000}
-  position: {x: -328, y: -104}
+  position: {x: -328, y: -136}
   ports:
     keys:
-    - bounds
+    - output
     values:
-    - _fieldName: bounds
+    - _fieldName: output
       _node: {fileID: -866579704511565868}
       _typeQualifiedName: UnityEngine.Bounds, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -31,6 +31,9 @@ MonoBehaviour:
       _typeConstraint: 0
       _dynamic: 0
   bounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 1, y: 1, z: 1}
+  output:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 0, y: 0, z: 0}
 --- !u!114 &-556167695264886864
@@ -46,7 +49,7 @@ MonoBehaviour:
   m_Name: Brush From Bounds
   m_EditorClassIdentifier: 
   graph: {fileID: 11400000}
-  position: {x: -70.5, y: -103}
+  position: {x: -72, y: -104}
   ports:
     keys:
     - bounds
@@ -57,7 +60,7 @@ MonoBehaviour:
       _typeQualifiedName: UnityEngine.Bounds, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
       connections:
-      - fieldName: bounds
+      - fieldName: output
         node: {fileID: -866579704511565868}
         reroutePoints: []
       _direction: 0
