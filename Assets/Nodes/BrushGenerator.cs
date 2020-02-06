@@ -28,6 +28,8 @@ public class BrushGenerator : MonoBehaviour
         }
 
         output = generator.GetOutput();
-        brush.BrushMesh = output;
+        if (brush != null) {
+            brush.BrushMesh = output;
+        }
     }
 }
