@@ -98,12 +98,17 @@ namespace Chisel.Core
             if (min.y > max.y) { float y = min.y; min.y = max.y; max.y = y; }
             if (min.z > max.z) { float z = min.z; min.z = max.z; max.z = z; }
 
-            return new BrushMesh
+            var brushMesh = new BrushMesh
             {
                 polygons	= CreateBoxPolygons(in surface),
                 halfEdges	= boxHalfEdges.ToArray(),
                 vertices	= CreateBoxVertices(min, max)
             };
+
+            brushMesh.UpdateHalfEdgePolygonIndices();
+            brushMesh.CalculatePlanes();
+
+            return brushMesh;
         }
 
         /// <summary>
