@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Bounds Input
   m_EditorClassIdentifier: 
   graph: {fileID: 11400000}
-  position: {x: -328, y: -136}
+  position: {x: -312, y: -168}
   ports:
     keys:
     - output
@@ -30,9 +30,10 @@ MonoBehaviour:
       _connectionType: 0
       _typeConstraint: 0
       _dynamic: 0
+  inputName: Brush Bounds
   bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 1, y: 1, z: 1}
+    m_Center: {x: 4, y: 2, z: 0.5}
+    m_Extent: {x: 2, y: 2, z: 4.5}
   output:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 0, y: 0, z: 0}
@@ -80,15 +81,179 @@ MonoBehaviour:
       _typeConstraint: 0
       _dynamic: 0
   bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
+    m_Center: {x: 4, y: 2, z: 0.5}
+    m_Extent: {x: 2, y: 2, z: 4.5}
   brush:
     version: 0
-    vertices: []
-    halfEdges: []
-    halfEdgePolygonIndices: 
-    polygons: []
-    surfaces: []
+    vertices:
+    - {x: 2, y: 4, z: -4}
+    - {x: 6, y: 4, z: -4}
+    - {x: 6, y: 4, z: 5}
+    - {x: 2, y: 4, z: 5}
+    - {x: 2, y: 0, z: -4}
+    - {x: 6, y: 0, z: -4}
+    - {x: 6, y: 0, z: 5}
+    - {x: 2, y: 0, z: 5}
+    halfEdges:
+    - vertexIndex: 0
+      twinIndex: 17
+    - vertexIndex: 3
+      twinIndex: 8
+    - vertexIndex: 2
+      twinIndex: 20
+    - vertexIndex: 1
+      twinIndex: 13
+    - vertexIndex: 4
+      twinIndex: 10
+    - vertexIndex: 5
+      twinIndex: 19
+    - vertexIndex: 6
+      twinIndex: 15
+    - vertexIndex: 7
+      twinIndex: 22
+    - vertexIndex: 0
+      twinIndex: 1
+    - vertexIndex: 4
+      twinIndex: 16
+    - vertexIndex: 7
+      twinIndex: 4
+    - vertexIndex: 3
+      twinIndex: 21
+    - vertexIndex: 1
+      twinIndex: 18
+    - vertexIndex: 2
+      twinIndex: 3
+    - vertexIndex: 6
+      twinIndex: 23
+    - vertexIndex: 5
+      twinIndex: 6
+    - vertexIndex: 0
+      twinIndex: 9
+    - vertexIndex: 1
+      twinIndex: 0
+    - vertexIndex: 5
+      twinIndex: 12
+    - vertexIndex: 4
+      twinIndex: 5
+    - vertexIndex: 3
+      twinIndex: 2
+    - vertexIndex: 7
+      twinIndex: 11
+    - vertexIndex: 6
+      twinIndex: 7
+    - vertexIndex: 2
+      twinIndex: 14
+    halfEdgePolygonIndices: 000000000000000000000000000000000100000001000000010000000100000002000000020000000200000002000000030000000300000003000000030000000400000004000000040000000400000005000000050000000500000005000000
+    polygons:
+    - firstEdge: 0
+      edgeCount: 4
+      surfaceID: 0
+      surface:
+        brushMaterial:
+          layerUsage: 15
+          renderMaterial: {fileID: 2100000, guid: ca37785d773692b47bd7339c9dd802ce,
+            type: 2}
+          physicsMaterial: {fileID: 13400000, guid: 9a131e27bee822f49bbeaa7ee131d929,
+            type: 2}
+        surfaceDescription:
+          smoothingGroup:
+            value: 0
+          surfaceFlags: 0
+          UV0:
+            U: {x: 1, y: 0, z: 0, w: 0.5}
+            V: {x: 0, y: 1, z: 0, w: 0.5}
+    - firstEdge: 4
+      edgeCount: 4
+      surfaceID: 1
+      surface:
+        brushMaterial:
+          layerUsage: 15
+          renderMaterial: {fileID: 2100000, guid: ca37785d773692b47bd7339c9dd802ce,
+            type: 2}
+          physicsMaterial: {fileID: 13400000, guid: 9a131e27bee822f49bbeaa7ee131d929,
+            type: 2}
+        surfaceDescription:
+          smoothingGroup:
+            value: 0
+          surfaceFlags: 0
+          UV0:
+            U: {x: 1, y: 0, z: 0, w: 0.5}
+            V: {x: 0, y: 1, z: 0, w: 0.5}
+    - firstEdge: 8
+      edgeCount: 4
+      surfaceID: 2
+      surface:
+        brushMaterial:
+          layerUsage: 15
+          renderMaterial: {fileID: 2100000, guid: ca37785d773692b47bd7339c9dd802ce,
+            type: 2}
+          physicsMaterial: {fileID: 13400000, guid: 9a131e27bee822f49bbeaa7ee131d929,
+            type: 2}
+        surfaceDescription:
+          smoothingGroup:
+            value: 0
+          surfaceFlags: 0
+          UV0:
+            U: {x: 1, y: 0, z: 0, w: 0.5}
+            V: {x: 0, y: 1, z: 0, w: 0.5}
+    - firstEdge: 12
+      edgeCount: 4
+      surfaceID: 3
+      surface:
+        brushMaterial:
+          layerUsage: 15
+          renderMaterial: {fileID: 2100000, guid: ca37785d773692b47bd7339c9dd802ce,
+            type: 2}
+          physicsMaterial: {fileID: 13400000, guid: 9a131e27bee822f49bbeaa7ee131d929,
+            type: 2}
+        surfaceDescription:
+          smoothingGroup:
+            value: 0
+          surfaceFlags: 0
+          UV0:
+            U: {x: 1, y: 0, z: 0, w: 0.5}
+            V: {x: 0, y: 1, z: 0, w: 0.5}
+    - firstEdge: 16
+      edgeCount: 4
+      surfaceID: 4
+      surface:
+        brushMaterial:
+          layerUsage: 15
+          renderMaterial: {fileID: 2100000, guid: ca37785d773692b47bd7339c9dd802ce,
+            type: 2}
+          physicsMaterial: {fileID: 13400000, guid: 9a131e27bee822f49bbeaa7ee131d929,
+            type: 2}
+        surfaceDescription:
+          smoothingGroup:
+            value: 0
+          surfaceFlags: 0
+          UV0:
+            U: {x: 1, y: 0, z: 0, w: 0.5}
+            V: {x: 0, y: 1, z: 0, w: 0.5}
+    - firstEdge: 20
+      edgeCount: 4
+      surfaceID: 5
+      surface:
+        brushMaterial:
+          layerUsage: 15
+          renderMaterial: {fileID: 2100000, guid: ca37785d773692b47bd7339c9dd802ce,
+            type: 2}
+          physicsMaterial: {fileID: 13400000, guid: 9a131e27bee822f49bbeaa7ee131d929,
+            type: 2}
+        surfaceDescription:
+          smoothingGroup:
+            value: 0
+          surfaceFlags: 0
+          UV0:
+            U: {x: 1, y: 0, z: 0, w: 0.5}
+            V: {x: 0, y: 1, z: 0, w: 0.5}
+    surfaces:
+    - localPlane: {x: 0, y: 1, z: 0, w: -4}
+    - localPlane: {x: 0, y: -1, z: 0, w: 0}
+    - localPlane: {x: -1, y: 0, z: 0, w: 2}
+    - localPlane: {x: 1, y: 0, z: 0, w: -6}
+    - localPlane: {x: 0, y: 0, z: -1, w: -4}
+    - localPlane: {x: 0, y: 0, z: 1, w: -5}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -105,6 +270,8 @@ MonoBehaviour:
   - {fileID: -866579704511565868}
   - {fileID: -556167695264886864}
   - {fileID: 3379879100313954414}
+  inputNodes:
+  - {fileID: -866579704511565868}
 --- !u!114 &3379879100313954414
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -118,7 +285,7 @@ MonoBehaviour:
   m_Name: Brush Output
   m_EditorClassIdentifier: 
   graph: {fileID: 11400000}
-  position: {x: 184, y: -72}
+  position: {x: 168, y: -72}
   ports:
     keys:
     - brushMesh

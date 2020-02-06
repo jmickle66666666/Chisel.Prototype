@@ -21,9 +21,6 @@ public class BrushFromBounds : Node {
 
 			bounds = GetInputValue<Bounds>("bounds", bounds);
 
-			var surfaceDefinition = new ChiselSurfaceDefinition();
-			surfaceDefinition.EnsureSize(6);
-
 			var surface = new ChiselSurface
 			{
 				surfaceDescription  = SurfaceDescription.Default,

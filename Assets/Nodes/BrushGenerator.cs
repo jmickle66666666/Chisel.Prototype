@@ -5,31 +5,41 @@ using Chisel.Components;
 using Chisel.Core;
 
 [ExecuteInEditMode]
-public class BrushGenerator : MonoBehaviour
+public class BrushGenerator : ChiselGeneratorComponent
 {
     public GeneratorGraph generator;
-    public BrushMesh output;
-    public ChiselBrush brush;
+    public BrushMesh brushMesh;
+    public ChiselBrushDefinition definition;
 
-    public bool work = false;
+    public const string kNodeTypeName = "NodeGenerator";
+    public override string NodeTypeName { get { return kNodeTypeName; } }
 
-    void Update()
-    {
-        if (work) {
-            work = false;
-            Work();
+    public BrushMesh BrushMesh {
+        get {
+            return brushMesh;
         }
     }
 
-    void Work()
-    {
+    public Dictionary<string, object> properties = new Dictionary<string, object>();
+    GeneratorGraph graphInstance;
+
+    protected override void UpdateGeneratorInternal()   {
         if (generator == null) {
             return;
         }
 
-        output = generator.GetOutput();
-        if (brush != null) {
-            brush.BrushMesh = output;
+        if (graphInstance == null) {
+            graphInstance = generator.Copy() as GeneratorGraph;
         }
+        
+        if (definition == null) {
+            definition = new ChiselBrushDefinition();
+        }
+
+        graphInstance.ApplyInputProperties(this);
+
+        brushMesh = graphInstance.GetOutput();
+        definition.brushOutline = brushMesh;
+        brushContainerAsset.Generate(definition);
     }
 }
