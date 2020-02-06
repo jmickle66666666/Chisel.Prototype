@@ -14,11 +14,13 @@ namespace Chisel.Editors
     // TODO: need to snap to vertices
     public sealed class PointDrawing
     {
+        public const float kDistanceEpsilon = 0.001f;
+
         internal static int s_PointDrawingHash = "PointDrawingHash".GetHashCode();
-        public static void PointDrawHandle(Rect dragArea, ref List<Vector3> points, out Matrix4x4 transformation, out ChiselModel modelBeneathCursor, UnitySceneExtensions.SceneHandles.CapFunction capFunction)
+        public static void PointDrawHandle(Rect dragArea, ref List<Vector3> points, out Matrix4x4 transformation, out ChiselModel modelBeneathCursor, bool releaseOnMouseUp = true, UnitySceneExtensions.SceneHandles.CapFunction capFunction = null)
         {
             var id = GUIUtility.GetControlID(s_PointDrawingHash, FocusType.Keyboard);
-            PointDrawing.Do(id, dragArea, ref points, out transformation, out modelBeneathCursor, capFunction);
+            PointDrawing.Do(id, dragArea, ref points, out transformation, out modelBeneathCursor, releaseOnMouseUp, capFunction);
         }
 
 
@@ -27,6 +29,8 @@ namespace Chisel.Editors
         {
             s_CurrentPointIndex = 0;
             UnitySceneExtensions.Grid.HoverGrid = null;
+            s_MousePosition = Event.current.mousePosition;
+            s_MouseJumping = false;
         }
 
         private const float kMaxHandleDistance = 3.0f;
@@ -36,6 +40,8 @@ namespace Chisel.Editors
         private static Matrix4x4            s_Transform;
         private static Matrix4x4            s_InvTransform;
         private static Snapping2D			s_Snapping2D = new Snapping2D();
+        private static Vector2			    s_MousePosition = Vector2.zero;
+        private static bool			        s_MouseJumping = false;
 
         // TODO: put these constants somewhere
         public const KeyCode    kCancelKey			= KeyCode.Escape;
@@ -57,11 +63,11 @@ namespace Chisel.Editors
                     var activeGridCenter				= UnitySceneExtensions.Grid.ActiveGrid.Center;
                     var surfaceGridPlane				= s_StartIntersection.plane;
                     var surfaceGridUp					= surfaceGridPlane.normal;
-                    var surfaceGridForward				= MathExtensions.CalculateTangent(surfaceGridUp); // Q: why if this is not negated, we end up-side-down?
-
-                    var activeGridFromWorldRotation		= Quaternion.LookRotation(activeGridForward, activeGridUp);
+                    var surfaceGridForward				= MathExtensions.CalculateBinormal(surfaceGridUp);
+                    
+                    var activeGridFromWorldRotation		= Quaternion.LookRotation(activeGridUp, activeGridForward);
                     var worldFromActiveGridRotation		= Quaternion.Inverse(activeGridFromWorldRotation);
-                    var surfaceGridFromWorldRotation	= Quaternion.LookRotation(surfaceGridForward, surfaceGridUp);
+                    var surfaceGridFromWorldRotation	= Quaternion.LookRotation(surfaceGridUp, surfaceGridForward);
                     var activeGridToSurfaceGridRotation	= surfaceGridFromWorldRotation * worldFromActiveGridRotation;
 
 
@@ -77,28 +83,29 @@ namespace Chisel.Editors
                     var bestDist = float.PositiveInfinity;
                     float dist;
 
-                    if (surfaceGridPlane.UnsignedRaycast(forwardRay, out dist)) { var abs_dist = Mathf.Abs(dist); if (abs_dist < bestDist) { bestDist = abs_dist; surfaceGridCenter = forwardRay.GetPoint(dist); } }
-                    if (surfaceGridPlane.UnsignedRaycast(backRay,    out dist)) { var abs_dist = Mathf.Abs(dist); if (abs_dist < bestDist) { bestDist = abs_dist; surfaceGridCenter = backRay   .GetPoint(dist); } }
-                    if (surfaceGridPlane.UnsignedRaycast(leftRay,    out dist)) { var abs_dist = Mathf.Abs(dist); if (abs_dist < bestDist) { bestDist = abs_dist; surfaceGridCenter = leftRay   .GetPoint(dist); } }
-                    if (surfaceGridPlane.UnsignedRaycast(rightRay,   out dist)) { var abs_dist = Mathf.Abs(dist); if (abs_dist < bestDist) { bestDist = abs_dist; surfaceGridCenter = rightRay  .GetPoint(dist); } }
+                    if (surfaceGridPlane.SignedRaycast(forwardRay, out dist)) { var abs_dist = Mathf.Abs(dist); if (abs_dist < bestDist) { bestDist = abs_dist; surfaceGridCenter = forwardRay.GetPoint(dist); } }
+                    if (surfaceGridPlane.SignedRaycast(backRay,    out dist)) { var abs_dist = Mathf.Abs(dist); if (abs_dist < bestDist) { bestDist = abs_dist; surfaceGridCenter = backRay   .GetPoint(dist); } }
+                    if (surfaceGridPlane.SignedRaycast(leftRay,    out dist)) { var abs_dist = Mathf.Abs(dist); if (abs_dist < bestDist) { bestDist = abs_dist; surfaceGridCenter = leftRay   .GetPoint(dist); } }
+                    if (surfaceGridPlane.SignedRaycast(rightRay,   out dist)) { var abs_dist = Mathf.Abs(dist); if (abs_dist < bestDist) { bestDist = abs_dist; surfaceGridCenter = rightRay  .GetPoint(dist); } }
                     if (bestDist > 100000) // prefer rays on the active-grid, only go up/down from the active-grid when we have no other choice
                     {
-                        if (surfaceGridPlane.UnsignedRaycast(upRay,   out dist)) { var abs_dist = Mathf.Abs(dist); if (abs_dist < bestDist) { bestDist = abs_dist; surfaceGridCenter = upRay     .GetPoint(dist); } }
-                        if (surfaceGridPlane.UnsignedRaycast(downRay, out dist)) { var abs_dist = Mathf.Abs(dist); if (abs_dist < bestDist) { bestDist = abs_dist; surfaceGridCenter = downRay   .GetPoint(dist); } }
+                        if (surfaceGridPlane.SignedRaycast(upRay,   out dist)) { var abs_dist = Mathf.Abs(dist); if (abs_dist < bestDist) { bestDist = abs_dist; surfaceGridCenter = upRay     .GetPoint(dist); } }
+                        if (surfaceGridPlane.SignedRaycast(downRay, out dist)) { var abs_dist = Mathf.Abs(dist); if (abs_dist < bestDist) { bestDist = abs_dist; surfaceGridCenter = downRay   .GetPoint(dist); } }
                     }
 
                     // TODO: try to snap the new surface grid point in other directions on the active-grid? (do we need to?)
-
-                    s_Transform = Matrix4x4.TRS(surfaceGridCenter - activeGridCenter, activeGridToSurfaceGridRotation, Vector3.one) * 
-                                        UnitySceneExtensions.Grid.ActiveGrid.GridToWorldSpace;
-                    s_InvTransform = s_Transform.inverse;
                     
+                    s_Transform = Matrix4x4.TRS(surfaceGridCenter - activeGridCenter, activeGridToSurfaceGridRotation, Vector3.one) * 
+                                                UnitySceneExtensions.Grid.ActiveGrid.GridToWorldSpace;
+                    s_InvTransform = s_Transform.inverse;
                     s_Snapping2D.Initialize(new UnitySceneExtensions.Grid(s_Transform), mousePosition, s_StartIntersection.point, UnityEditor.Handles.matrix);
                 }
             }
 
             if (s_StartIntersection != null)
             {
+                if (!dragArea.Contains(mousePosition))
+                    return null;
                 if (s_Snapping2D.DragTo(mousePosition, SnappingMode.Always))
                 {
                     UnitySceneExtensions.Grid.HoverGrid = s_Snapping2D.WorldSlideGrid;
@@ -112,10 +119,13 @@ namespace Chisel.Editors
         {
             if (point.HasValue)
             {
+                var localPosition = s_InvTransform.MultiplyPoint(point.Value);
+                if (s_CurrentPointIndex > 0 &&
+                    (localPosition - points[s_CurrentPointIndex - 1]).sqrMagnitude < kDistanceEpsilon)
+                    return;
+
                 while (points.Count > 0 && points.Count > s_CurrentPointIndex)
                     points.RemoveAt(points.Count - 1);
-
-                var localPosition = s_InvTransform.MultiplyPoint(point.Value);
 
                 while (points.Count <= s_CurrentPointIndex)
                     points.Add(localPosition);
@@ -128,27 +138,48 @@ namespace Chisel.Editors
             }
         }
 
+        static void Acquire(int controlID)
+        {
+            GUIUtility.hotControl = GUIUtility.keyboardControl = controlID;
+            EditorGUIUtility.SetWantsMouseJumping(1);
+            s_MouseJumping = true;
+        }
+
+        public static void Release()
+        {
+            GUIUtility.hotControl = 0;
+            GUIUtility.keyboardControl = 0;
+            EditorGUIUtility.SetWantsMouseJumping(0);
+            s_MousePosition = Event.current.mousePosition;
+            s_MouseJumping = false;
+        }
+
         static void Commit(Event evt, Rect dragArea, ref List<Vector3> points)
         {
+            var newPoint = GetPointAtPosition(s_MousePosition, dragArea);
+            if (!newPoint.HasValue)
+            {
+                Cancel(evt, ref points);
+                return;
+            }
+
             s_CurrentPointIndex++;
-            UpdatePoints(points, GetPointAtPosition(evt.mousePosition, dragArea));
+            UpdatePoints(points, newPoint);
 
             // reset the starting position
-            s_StartIntersection = ChiselClickSelectionManager.GetPlaneIntersection(evt.mousePosition, dragArea);
+            s_StartIntersection = ChiselClickSelectionManager.GetPlaneIntersection(s_MousePosition, dragArea);
             evt.Use();
         }
 
         static void Cancel(Event evt, ref List<Vector3> points)
         {
-            GUIUtility.hotControl = 0;
-            GUIUtility.keyboardControl = 0;
-            evt.Use();
+            Release();
 
             Reset();
             points.Clear();
         }
 
-        public static void Do(int id, Rect dragArea, ref List<Vector3> points, out Matrix4x4 transformation, out ChiselModel modelBeneathCursor, UnitySceneExtensions.SceneHandles.CapFunction capFunction)
+        public static void Do(int id, Rect dragArea, ref List<Vector3> points, out Matrix4x4 transformation, out ChiselModel modelBeneathCursor, bool releaseOnMouseUp = true, UnitySceneExtensions.SceneHandles.CapFunction capFunction = null)
         {
             modelBeneathCursor = null;
             var evt = Event.current;
@@ -204,6 +235,20 @@ namespace Chisel.Editors
                         using (new UnityEditor.Handles.DrawingScope(selectedColor))
                         {
                             HandleRendering.RenderSnapping3D(s_Snapping2D.WorldSlideGrid, s_Snapping2D.WorldSnappedExtents, s_Snapping2D.GridSnappedPosition, s_Snapping2D.SnapResult, true);
+
+                            using (new UnityEditor.Handles.DrawingScope(s_Transform))
+                            {
+                                var count = points.Count - 1;
+                                for (int i = 0; i < count - 1; i++)
+                                {
+                                    if ((points[count] - points[i]).sqrMagnitude < kDistanceEpsilon)
+                                    {
+                                        if (i > 0)
+                                            UnityEditor.Handles.color = Color.red;
+                                        capFunction(-1, points[count], orientation, UnityEditor.HandleUtility.GetHandleSize(points[count]) * (kPointScale * 2.0f), type);
+                                    }
+                                }
+                            }
                         }
                     }
                     break;
@@ -215,7 +260,15 @@ namespace Chisel.Editors
                         GUIUtility.hotControl != id)
                         break;
 
-                    UpdatePoints(points, GetPointAtPosition(evt.mousePosition, dragArea));
+
+                    if (s_MouseJumping)
+                        s_MousePosition += evt.delta;
+                    else
+                        s_MousePosition = Event.current.mousePosition;
+
+                    var newPoint = GetPointAtPosition(s_MousePosition, dragArea);
+                    if (newPoint.HasValue)
+                        UpdatePoints(points, newPoint);
                     SceneView.RepaintAll();
                     break;
                 }
@@ -224,7 +277,15 @@ namespace Chisel.Editors
                     if (GUIUtility.hotControl != id)
                         break;
 
-                    UpdatePoints(points, GetPointAtPosition(evt.mousePosition, dragArea));
+                    if (s_MouseJumping)
+                        s_MousePosition += evt.delta;
+                    else
+                        s_MousePosition = Event.current.mousePosition;
+
+                    var newPoint = GetPointAtPosition(s_MousePosition, dragArea);
+                    if (newPoint.HasValue)
+                        UpdatePoints(points, newPoint);
+
                     GUI.changed = true;
                     evt.Use();
                     break;
@@ -234,7 +295,9 @@ namespace Chisel.Editors
                     if (SceneHandles.InCameraOrbitMode)
                         break;
 
-                    if (GUIUtility.hotControl != 0)
+                    var hotControl = GUIUtility.hotControl;
+                    if (hotControl != 0 &&
+                        hotControl != id)
                         break;
 
                     if ((UnityEditor.HandleUtility.nearestControl != id || evt.button != 0) &&
@@ -245,8 +308,11 @@ namespace Chisel.Editors
                         break;
 
                     s_CurrentPointIndex++;
-                    GUIUtility.hotControl = GUIUtility.keyboardControl = id;
-                    EditorGUIUtility.SetWantsMouseJumping(1);
+                    if (hotControl != id)
+                    {
+                        Acquire(id);
+                        s_MousePosition = evt.mousePosition;
+                    }
                     evt.Use();
                     break;
                 }
@@ -255,16 +321,23 @@ namespace Chisel.Editors
                     if (GUIUtility.hotControl != id || (evt.button != 0 && evt.button != 2))
                         break;
 
-                    GUIUtility.hotControl = 0;
-                    GUIUtility.keyboardControl = 0;
+                    if (releaseOnMouseUp)
+                        Release();
                     evt.Use();
-                    EditorGUIUtility.SetWantsMouseJumping(0);
+
 
                     // reset the starting position
-                    UpdatePoints(points, GetPointAtPosition(evt.mousePosition, dragArea));
+                    var newPoint = GetPointAtPosition(s_MousePosition, dragArea);
+                    if (!newPoint.HasValue)
+                    {
+                        Cancel(evt, ref points);
+                        break;
+                    }
+
+                    UpdatePoints(points, newPoint);
                     break;
                 }
-            }
+            } 
             if (s_StartIntersection != null)
             {
                 modelBeneathCursor = s_StartIntersection.model;

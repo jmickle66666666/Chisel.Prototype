@@ -128,7 +128,7 @@ namespace Chisel.Editors
                 
                 pickClosestGameObjectDelegate = HandleUtilityType.GetField("pickClosestGameObjectDelegate", BindingFlags.NonPublic | BindingFlags.Static);
                 //var delegateType			= pickClosestGameObjectDelegate.FieldType;
-                //var pickClosestGameObject	= typeof(CSGSelectionManager).GetMethod("PickClosestGameObject");
+                //var pickClosestGameObject	= typeof(ChiselSelectionManager).GetMethod("PickClosestGameObject");
                 //var methodDelegate		= Delegate.CreateDelegate(delegateType, pickClosestGameObject);
                 //pickClosestGameObjectDelegate.SetValue(null, methodDelegate);
             }
@@ -152,16 +152,17 @@ namespace Chisel.Editors
             public ChiselNode		node;
             public Transform	transform;
         }
-        static List<SelectedNode>	selectedNode = new List<SelectedNode>();
-        static HashSet<ChiselNode>		foundNodes = new HashSet<ChiselNode>();
+
+        static List<SelectedNode>	selectedNodeList        = new List<SelectedNode>();
+        static HashSet<ChiselNode>	selectedNodeHash        = new HashSet<ChiselNode>();
 
         void UpdateSelection()
         {
             var transforms = Selection.transforms;
-            selectedNode.Clear();
+            selectedNodeList.Clear();
             if (transforms.Length > 0)
             {
-                foundNodes.Clear();
+                selectedNodeHash.Clear();
                 for (int i = 0; i < transforms.Length; i++)
                 {
                     var transform = transforms[i];
@@ -171,12 +172,12 @@ namespace Chisel.Editors
                     if (nodes == null || nodes.Length == 0)
                         continue;
                     foreach (var node in nodes)
-                        foundNodes.Add(node);
+                        selectedNodeHash.Add(node);
                 }
-                foreach (var node in foundNodes)
+                foreach (var node in selectedNodeHash)
                 {
                     var transform = node.transform;
-                    selectedNode.Add(new SelectedNode(node, transform));
+                    selectedNodeList.Add(new SelectedNode(node, transform));
                 }
             }
         }
@@ -184,21 +185,21 @@ namespace Chisel.Editors
         static HashSet<ChiselNode> modifiedNodes = new HashSet<ChiselNode>();
         public void OnSceneGUI(SceneView sceneView)
         {
-            if (selectedNode.Count > 0)
+            if (selectedNodeList.Count > 0)
             {
-                for (int i = 0; i < selectedNode.Count; i++)
+                for (int i = 0; i < selectedNodeList.Count; i++)
                 {
-                    if (!selectedNode[i].transform)
+                    if (!selectedNodeList[i].transform)
                     {
                         UpdateSelection();
                         break;
                     }
                 }
                 modifiedNodes.Clear();
-                for (int i = 0; i < selectedNode.Count; i++)
+                for (int i = 0; i < selectedNodeList.Count; i++)
                 {
-                    var transform	= selectedNode[i].transform;
-                    var node		= selectedNode[i].node;
+                    var transform	= selectedNodeList[i].transform;
+                    var node		= selectedNodeList[i].node;
                     var curLocalToWorldMatrix = transform.localToWorldMatrix;
                     var oldLocalToWorldMatrix = node.hierarchyItem.LocalToWorldMatrix;
                     if (curLocalToWorldMatrix.m00 != oldLocalToWorldMatrix.m00 ||
@@ -228,7 +229,7 @@ namespace Chisel.Editors
                     }
                 }
                 if (modifiedNodes.Count > 0)
-                    CSGNodeHierarchyManager.NotifyTransformationChanged(modifiedNodes);
+                    ChiselNodeHierarchyManager.NotifyTransformationChanged(modifiedNodes);
             }
 
             // Handle selection clicks / marquee selection
@@ -431,8 +432,8 @@ namespace Chisel.Editors
             {
                 if (brushIntersection.brushUserID != -1)
                 {
-                    var	brush	= CSGNodeHierarchyManager.FindCSGNodeByInstanceID(brushIntersection.brush.UserID);
-                    var model	= CSGNodeHierarchyManager.FindCSGNodeByInstanceID(brushIntersection.tree.UserID) as ChiselModel;
+                    var	brush	= ChiselNodeHierarchyManager.FindChiselNodeByInstanceID(brushIntersection.brush.UserID);
+                    var model	= ChiselNodeHierarchyManager.FindChiselNodeByInstanceID(brushIntersection.tree.UserID) as ChiselModel;
                     return new PlaneIntersection(brushIntersection, brush, model);
                 }
                 
@@ -456,7 +457,7 @@ namespace Chisel.Editors
                 var gridPlane = UnitySceneExtensions.Grid.ActiveGrid.PlaneXZ;
                 var mouseRay = UnityEditor.HandleUtility.GUIPointToWorldRay(mousePosition);
                 var dist = 0.0f;
-                if (gridPlane.UnsignedRaycast(mouseRay, out dist))
+                if (gridPlane.SignedRaycast(mouseRay, out dist))
                     return new PlaneIntersection(mouseRay.GetPoint(dist), gridPlane);
             }
             return null;
@@ -483,7 +484,7 @@ namespace Chisel.Editors
 
                 var brush = intersection.brush;
     
-                var node = CSGNodeHierarchyManager.FindCSGNodeByInstanceID(brush.UserID);
+                var node = ChiselNodeHierarchyManager.FindChiselNodeByInstanceID(brush.UserID);
                 if (!node)
                     return false;
 
@@ -523,7 +524,7 @@ namespace Chisel.Editors
 
                 var brush = brushIntersection.brush;
     
-                var node = CSGNodeHierarchyManager.FindCSGNodeByInstanceID(brush.UserID);
+                var node = ChiselNodeHierarchyManager.FindChiselNodeByInstanceID(brush.UserID);
                 if (!node)
                     return null;
                 
@@ -550,7 +551,7 @@ namespace Chisel.Editors
 
                 var brush = intersection.brush;
     
-                var node = CSGNodeHierarchyManager.FindCSGNodeByInstanceID(brush.UserID);
+                var node = ChiselNodeHierarchyManager.FindChiselNodeByInstanceID(brush.UserID);
                 if (!node)
                     return null;
 
@@ -594,7 +595,7 @@ namespace Chisel.Editors
                     if (ChiselSceneQuery.FindFirstWorldIntersection(model, worldRayStart, worldRayEnd, filterLayerParameter0, layers, ignore, filter, out tempIntersection))
                     {
                         var clickedBrush		= tempIntersection.brush;
-                        node = CSGNodeHierarchyManager.FindCSGNodeByInstanceID(clickedBrush.UserID);
+                        node = ChiselNodeHierarchyManager.FindChiselNodeByInstanceID(clickedBrush.UserID);
                         if (node)
                         {
                             if (ignore != null &&
@@ -691,7 +692,7 @@ namespace Chisel.Editors
                 return null;
             }
             /*
-            if (CSGGeneratedComponentManager.IsObjectGenerated(picked))
+            if (ChiselGeneratedComponentManager.IsObjectGenerated(picked))
             {
                 if (ignore == null)
                     return null;
@@ -700,7 +701,7 @@ namespace Chisel.Editors
             }
             return picked;*/
         }
-        
+
         public static IEnumerable<KeyValuePair<GameObject, CSGTreeBrushIntersection>> GetAllOverlapping(Vector2 position)
         {
             var allOverlapping = new List<GameObject>();

@@ -51,10 +51,7 @@ namespace Chisel.Editors
             currentDraggableArea.height -= kGap + kGap;
 
             int windowId = GUIUtility.GetControlID(kWindowHash, FocusType.Passive);
-            var prevSkin = GUI.skin;
-            GUI.skin = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Scene);
-            position = GUI.Window(windowId, position, HandleWindowLogic, title);
-            GUI.skin = prevSkin;
+            position = GUI.Window(windowId, position, HandleWindowLogic, title, ChiselSceneGUIStyle.windowStyle);
 
             if (position.width < minWidth)
                 position.width = minWidth;
@@ -69,7 +66,7 @@ namespace Chisel.Editors
 
             var tempPosition = position;
             tempPosition.height -= kWindowTitleBarHeight;
-            CSGEditorUtility.ConsumeUnusedMouseEvents(kWindowHash, tempPosition);
+            ChiselEditorUtility.ConsumeUnusedMouseEvents(kWindowHash, tempPosition);
         }
 
         void HandleWindowLogic(int windowID)

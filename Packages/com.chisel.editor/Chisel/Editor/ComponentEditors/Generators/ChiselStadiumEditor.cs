@@ -11,80 +11,12 @@ using UnitySceneExtensions;
 
 namespace Chisel.Editors
 {
-    public sealed class ChiselStadiumDetails : ChiselGeneratorDetails<ChiselStadium>
-    {
-    }
-    
     [CustomEditor(typeof(ChiselStadium))]
     [CanEditMultipleObjects]
     public sealed class ChiselStadiumEditor : ChiselGeneratorEditor<ChiselStadium>
     {
-        [MenuItem("GameObject/Chisel/" + ChiselStadium.kNodeTypeName)]
+        [MenuItem("GameObject/Chisel/" + ChiselStadium.kNodeTypeName, false, 0)]
         static void CreateAsGameObject(MenuCommand menuCommand) { CreateAsGameObjectMenuCommand(menuCommand, ChiselStadium.kNodeTypeName); }
-
-        SerializedProperty heightProp;
-        SerializedProperty lengthProp;
-        SerializedProperty topLengthProp;
-        SerializedProperty bottomLengthProp;
-
-        SerializedProperty diameterProp;
-        
-        SerializedProperty topSidesProp;
-        SerializedProperty bottomSidesProp;
-
-        SerializedProperty surfacesProp;
-
-        protected override void ResetInspector()
-        {
-            heightProp			= null;
-            lengthProp			= null;
-            topLengthProp		= null;
-            bottomLengthProp	= null;
-
-            diameterProp		= null;
-        
-            topSidesProp		= null;
-            bottomSidesProp		= null;
-
-            surfacesProp        = null;
-        }
-
-        protected override void InitInspector()
-        {
-            var definitionProp = serializedObject.FindProperty(nameof(ChiselStadium.definition));
-            {
-                heightProp			= definitionProp.FindPropertyRelative(nameof(ChiselStadium.definition.height));
-
-                lengthProp			= definitionProp.FindPropertyRelative(nameof(ChiselStadium.definition.length));
-                topLengthProp		= definitionProp.FindPropertyRelative(nameof(ChiselStadium.definition.topLength));
-                bottomLengthProp	= definitionProp.FindPropertyRelative(nameof(ChiselStadium.definition.bottomLength));
-
-                diameterProp		= definitionProp.FindPropertyRelative(nameof(ChiselStadium.definition.diameter));
-
-                topSidesProp		= definitionProp.FindPropertyRelative(nameof(ChiselStadium.definition.topSides));
-                bottomSidesProp		= definitionProp.FindPropertyRelative(nameof(ChiselStadium.definition.bottomSides));
-
-                var surfDefProp     = definitionProp.FindPropertyRelative(nameof(ChiselStadium.definition.surfaceDefinition));
-                {
-                    surfacesProp    = surfDefProp.FindPropertyRelative(nameof(ChiselStadium.definition.surfaceDefinition.surfaces));
-                }
-            }
-        }
-
-        protected override void OnInspector()
-        {
-            EditorGUILayout.PropertyField(heightProp);
-            EditorGUILayout.PropertyField(lengthProp);
-            EditorGUILayout.PropertyField(topLengthProp);
-            EditorGUILayout.PropertyField(bottomLengthProp);
-
-            EditorGUILayout.PropertyField(diameterProp);
-        
-            EditorGUILayout.PropertyField(topSidesProp);
-            EditorGUILayout.PropertyField(bottomSidesProp);
-            
-            ShowSurfaces(surfacesProp);
-        }
 
         const float kLineDash					= 2.0f;
         const float kVertLineThickness			= 0.75f;
@@ -101,8 +33,8 @@ namespace Chisel.Editors
             var haveRoundedTop		= definition.haveRoundedTop;
             var haveRoundedBottom	= definition.haveRoundedBottom;
             var haveCenter			= definition.haveCenter;
-            //CSGOutlineRenderer.DrawLineLoop(vertices,     0, sides, lineMode: lineMode, thickness: kCapLineThickness);
-            //CSGOutlineRenderer.DrawLineLoop(vertices, sides, sides, lineMode: lineMode, thickness: kCapLineThickness);
+            //ChiselOutlineRenderer.DrawLineLoop(vertices,     0, sides, lineMode: lineMode, thickness: kCapLineThickness);
+            //ChiselOutlineRenderer.DrawLineLoop(vertices, sides, sides, lineMode: lineMode, thickness: kCapLineThickness);
 
             var firstTopSide = definition.firstTopSide;
             var lastTopSide  = definition.lastTopSide;
@@ -123,12 +55,12 @@ namespace Chisel.Editors
                 var dashSize	= (sideLine ? 0                  : kLineDash);
                 ChiselOutlineRenderer.DrawLine(vertices[k], vertices[sides + k], lineMode: lineMode, thickness: thickness, dashSize: dashSize);
             }
-            
-            //CSGOutlineRenderer.DrawLine(vertices[firstBottomSide], vertices[lastBottomSide], lineMode: lineMode, thickness: kVertLineThickness);
-            //CSGOutlineRenderer.DrawLine(vertices[firstTopSide   ], vertices[lastTopSide   ], lineMode: lineMode, thickness: kVertLineThickness);
-            
-            //CSGOutlineRenderer.DrawLine(vertices[sides + firstBottomSide], vertices[sides + lastBottomSide], lineMode: lineMode, thickness: kVertLineThickness);
-            //CSGOutlineRenderer.DrawLine(vertices[sides + firstTopSide   ], vertices[sides + lastTopSide   ], lineMode: lineMode, thickness: kVertLineThickness);
+
+            //ChiselOutlineRenderer.DrawLine(vertices[firstBottomSide], vertices[lastBottomSide], lineMode: lineMode, thickness: kVertLineThickness);
+            //ChiselOutlineRenderer.DrawLine(vertices[firstTopSide   ], vertices[lastTopSide   ], lineMode: lineMode, thickness: kVertLineThickness);
+
+            //ChiselOutlineRenderer.DrawLine(vertices[sides + firstBottomSide], vertices[sides + lastBottomSide], lineMode: lineMode, thickness: kVertLineThickness);
+            //ChiselOutlineRenderer.DrawLine(vertices[sides + firstTopSide   ], vertices[sides + lastTopSide   ], lineMode: lineMode, thickness: kVertLineThickness);
         }
 
         internal static int s_TopHash		= "TopStadiumHash".GetHashCode();

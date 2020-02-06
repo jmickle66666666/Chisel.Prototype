@@ -1,4 +1,4 @@
-﻿using Chisel.Core;
+using Chisel.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,8 +65,13 @@ namespace Chisel.Components
                 return false;
 
             var staticFlags = UnityEditor.GameObjectUtility.GetStaticEditorFlags(model.gameObject);
+#if UNITY_2019_2_OR_NEWER
+            if ((staticFlags & UnityEditor.StaticEditorFlags.ContributeGI) != UnityEditor.StaticEditorFlags.ContributeGI)
+                return false;
+#else
             if ((staticFlags & UnityEditor.StaticEditorFlags.LightmapStatic) != UnityEditor.StaticEditorFlags.LightmapStatic)
                 return false;
+#endif
 
             for (int i = 0; i < model.generatedMeshes.Length; i++)
             {
@@ -95,8 +100,12 @@ namespace Chisel.Components
                     continue;
 
                 var staticFlags = UnityEditor.GameObjectUtility.GetStaticEditorFlags(model.gameObject);
-                if ((!model.AutoRebuildUVs && !force) ||
-                    (staticFlags & UnityEditor.StaticEditorFlags.LightmapStatic) != UnityEditor.StaticEditorFlags.LightmapStatic)
+#if UNITY_2019_2_OR_NEWER
+                var lightmapStatic = (staticFlags & UnityEditor.StaticEditorFlags.ContributeGI) == UnityEditor.StaticEditorFlags.ContributeGI;
+#else
+                var lightmapStatic = (staticFlags & UnityEditor.StaticEditorFlags.LightmapStatic) == UnityEditor.StaticEditorFlags.LightmapStatic;
+#endif
+                if ((!model.AutoRebuildUVs && !force) || !lightmapStatic)
                     continue;
 
                 for (int i = 0; i < model.generatedMeshes.Length; i++)
@@ -314,8 +323,8 @@ namespace Chisel.Components
                 var type		= generatedMesh.meshDescription.meshQuery.LayerParameterIndex;
                 switch (type)
                 {
-                    case LayerParameterIndex.LayerParameter1: renderMaterial  = CSGMaterialManager.DefaultMaterial; break;
-                    case LayerParameterIndex.LayerParameter2: physicsMaterial = CSGMaterialManager.DefaultPhysicsMaterial; break;
+                    case LayerParameterIndex.LayerParameter1: renderMaterial  = ChiselMaterialManager.DefaultMaterial; break;
+                    case LayerParameterIndex.LayerParameter2: physicsMaterial = ChiselMaterialManager.DefaultPhysicsMaterial; break;
                 }
             }
             
@@ -352,7 +361,12 @@ namespace Chisel.Components
                 if (generatedMesh.needsUpdate || forceUpdate)
                 {
 #if UNITY_EDITOR
-                    if ((modelState.staticFlags & UnityEditor.StaticEditorFlags.LightmapStatic) == UnityEditor.StaticEditorFlags.LightmapStatic)
+#if UNITY_2019_2_OR_NEWER
+                    var lightmapStatic = (modelState.staticFlags & UnityEditor.StaticEditorFlags.ContributeGI) == UnityEditor.StaticEditorFlags.ContributeGI;
+#else
+                    var lightmapStatic = (modelState.staticFlags & UnityEditor.StaticEditorFlags.LightmapStatic) == UnityEditor.StaticEditorFlags.LightmapStatic;
+#endif
+                    if (lightmapStatic)
                     {
                         generatedMesh.renderComponents.meshRenderer.realtimeLightmapIndex = -1;
                         generatedMesh.renderComponents.meshRenderer.lightmapIndex         = -1;
@@ -476,7 +490,7 @@ namespace Chisel.Components
         internal static bool IsDefaultModel(Component component)	{ return component  && (component.name  == GeneratedDefaultModelName) && (component is ChiselModel || component.GetComponent<ChiselModel>()); }
 
         static List<GameObject> __rootGameObjects = new List<GameObject>(); // static to avoid allocations
-        internal static ChiselModel CreateDefaultModel(CSGSceneHierarchy sceneHierarchy)
+        internal static ChiselModel CreateDefaultModel(ChiselSceneHierarchy sceneHierarchy)
         {
             var currentScene = sceneHierarchy.Scene;
             currentScene.GetRootGameObjects(__rootGameObjects);
@@ -549,15 +563,15 @@ namespace Chisel.Components
             
             try
             {
-                CSGNodeHierarchyManager.ignoreNextChildrenChanged = true;
+                ChiselNodeHierarchyManager.ignoreNextChildrenChanged = true;
                 var newGameObject = new GameObject(GeneratedContainerName);
                 newGameObject.SetActive(false);
                 try
                 {
                     var transform  = newGameObject.GetComponent<Transform>();
-                    CSGNodeHierarchyManager.ignoreNextChildrenChanged = true;
+                    ChiselNodeHierarchyManager.ignoreNextChildrenChanged = true;
                     transform.SetParent(model.transform, false);
-                    CSGNodeHierarchyManager.ignoreNextChildrenChanged = false;
+                    ChiselNodeHierarchyManager.ignoreNextChildrenChanged = false;
                     transform.localPosition = Vector3.zero;
                     transform.localRotation = Quaternion.identity;
                     transform.localScale    = Vector3.one;
@@ -584,9 +598,9 @@ namespace Chisel.Components
             {
                 model.GeneratedDataContainer.hideFlags = HideFlags.None;
                 model.GeneratedDataTransform.hideFlags = HideFlags.None;
-                CSGNodeHierarchyManager.ignoreNextChildrenChanged = true;
+                ChiselNodeHierarchyManager.ignoreNextChildrenChanged = true;
                 ChiselObjectUtility.SafeDestroy(model.GeneratedDataContainer);
-                CSGNodeHierarchyManager.ignoreNextChildrenChanged = false;
+                ChiselNodeHierarchyManager.ignoreNextChildrenChanged = false;
                 model.GeneratedDataContainer = null;
                 model.GeneratedDataTransform = null;
             }
@@ -865,7 +879,7 @@ namespace Chisel.Components
             if (oldVertices.Length == 0)
                 return;
 
-            // TODO: can we avoid creating a temporary Mesh? if not; make sure CSGSharedUnityMeshManager is handled correctly
+            // TODO: can we avoid creating a temporary Mesh? if not; make sure ChiselSharedUnityMeshManager is handled correctly
 
             var oldUV			= generatedMesh.uv;
             var oldNormals		= generatedMesh.normals;

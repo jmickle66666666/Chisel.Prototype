@@ -6,12 +6,16 @@ using System.Collections.Generic;
 namespace Chisel.Core
 {
     [Serializable]
-    public class BrushDefinition : IChiselGenerator
+    public class ChiselBrushDefinition : IChiselGenerator
     {
         public BrushMesh                brushOutline;
+
+        [NamedItems(overflow = "Surface {0}")]
         public ChiselSurfaceDefinition  surfaceDefinition;
         
+        [HideInInspector]
         [SerializeField] bool           isInsideOut = false;
+        [HideInInspector]
         [SerializeField] bool           validState = true;
 
         public bool ValidState { get { return validState; } set { validState = value; } }

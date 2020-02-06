@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using Chisel.Utilities;
 using UnitySceneExtensions;
+using Snapping = UnitySceneExtensions.Snapping;
 
 namespace Chisel.Editors
 {
@@ -104,13 +105,15 @@ namespace Chisel.Editors
                         
                     // necessary to get accurate mouse cursor position when wrapping around screen due to using EditorGUIUtility.SetWantsMouseJumping
                     s_CurrentMousePosition += evt.delta;
+                    SceneView.RepaintAll();
 
                     if (!s_Snapping1D.Move(s_CurrentMousePosition))
                         break;
 
                     position = transformation.inverse.MultiplyPoint(SnappingUtility.Quantize(s_Snapping1D.WorldSnappedPosition));
                     state = ExtrusionState.Modified;
-                    break;
+                    evt.Use(); 
+                    break; 
                 }
                 case EventType.Layout:
                 {
@@ -131,6 +134,7 @@ namespace Chisel.Editors
                         break;
                         
                     state = Commit(evt);
+                    evt.Use();
                     break;
                 }
             }
