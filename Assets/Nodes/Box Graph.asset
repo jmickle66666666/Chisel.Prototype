@@ -1,0 +1,141 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-866579704511565868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01d704db4a0ed45b684f40f9cc5a8275, type: 3}
+  m_Name: Bounds Input
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: -328, y: -104}
+  ports:
+    keys:
+    - bounds
+    values:
+    - _fieldName: bounds
+      _node: {fileID: -866579704511565868}
+      _typeQualifiedName: UnityEngine.Bounds, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: bounds
+        node: {fileID: -556167695264886864}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  bounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+--- !u!114 &-556167695264886864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d53c6a22870b4031a6b16695ed0301e, type: 3}
+  m_Name: Brush From Bounds
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: -70.5, y: -103}
+  ports:
+    keys:
+    - bounds
+    - brush
+    values:
+    - _fieldName: bounds
+      _node: {fileID: -556167695264886864}
+      _typeQualifiedName: UnityEngine.Bounds, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: bounds
+        node: {fileID: -866579704511565868}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: brush
+      _node: {fileID: -556167695264886864}
+      _typeQualifiedName: Chisel.Core.BrushMesh, com.chisel.core, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: brushMesh
+        node: {fileID: 3379879100313954414}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  bounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  brush:
+    version: 0
+    vertices: []
+    halfEdges: []
+    halfEdgePolygonIndices: 
+    polygons: []
+    surfaces: []
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: Box Graph
+  m_EditorClassIdentifier: Assembly-CSharp::GeneratorGraph
+  nodes:
+  - {fileID: -866579704511565868}
+  - {fileID: -556167695264886864}
+  - {fileID: 3379879100313954414}
+--- !u!114 &3379879100313954414
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0db2f987ff0074dc3b15feb8eaaad3dd, type: 3}
+  m_Name: Brush Output
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: 184, y: -72}
+  ports:
+    keys:
+    - brushMesh
+    values:
+    - _fieldName: brushMesh
+      _node: {fileID: 3379879100313954414}
+      _typeQualifiedName: Chisel.Core.BrushMesh, com.chisel.core, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: brush
+        node: {fileID: -556167695264886864}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  brushMesh:
+    version: 0
+    vertices: []
+    halfEdges: []
+    halfEdgePolygonIndices: 
+    polygons: []
+    surfaces: []
