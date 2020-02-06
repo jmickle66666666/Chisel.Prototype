@@ -8,17 +8,11 @@ using Chisel.Core;
 public class BrushGenerator : ChiselGeneratorComponent
 {
     public GeneratorGraph generator;
-    public BrushMesh brushMesh;
+    public BrushMesh[] brushMeshes;
     public ChiselBrushDefinition definition;
 
     public const string kNodeTypeName = "NodeGenerator";
     public override string NodeTypeName { get { return kNodeTypeName; } }
-
-    public BrushMesh BrushMesh {
-        get {
-            return brushMesh;
-        }
-    }
 
     public Dictionary<string, object> properties = new Dictionary<string, object>();
     GeneratorGraph graphInstance;
@@ -38,8 +32,8 @@ public class BrushGenerator : ChiselGeneratorComponent
 
         graphInstance.ApplyInputProperties(this);
 
-        brushMesh = graphInstance.GetOutput();
-        definition.brushOutline = brushMesh;
-        brushContainerAsset.Generate(definition);
+        brushMeshes = graphInstance.GetOutput();
+        brushContainerAsset.SetSubMeshes(brushMeshes);
+        brushContainerAsset.SetDirty();
     }
 }

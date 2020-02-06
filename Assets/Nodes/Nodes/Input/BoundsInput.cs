@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using XNode;
 
+[CreateNodeMenu("Input/Bounds")]
 public class BoundsInput : InputNode {
 
 	// Use this for initialization
@@ -12,12 +13,22 @@ public class BoundsInput : InputNode {
 		
 	}
 
-	public Bounds bounds;
+	public Bounds bounds = new Bounds(Vector3.zero, Vector3.one);
 	[Output] public Bounds output;
+	[Output] public Vector3 min;
+	[Output] public Vector3 max;
+	[Output] public Vector3 size;
+	[Output] public Vector3 center;
+	[Output] public Vector3 extents;
 
 	// Return the correct value of an output port when requested
 	public override object GetValue(NodePort port) {
 		if (port.fieldName == "output") return bounds;
+		if (port.fieldName == "min") { return bounds.min; }
+		if (port.fieldName == "max") { return bounds.max; }
+		if (port.fieldName == "size") { return bounds.size; }
+		if (port.fieldName == "center") { return bounds.center; }
+		if (port.fieldName == "extents") { return bounds.extents; }
 		return null; // Replace this
 	}
 

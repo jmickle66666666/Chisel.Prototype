@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using XNode;
 
+[NodeTint(.6f,.5f,0f)]
 public class InputNode : Node
 {
     public string inputName;
@@ -12,6 +13,6 @@ public class InputNode : Node
     }
 
     public virtual void UpdateProperties(BrushGenerator generator) {
-        
+
     }
 }
