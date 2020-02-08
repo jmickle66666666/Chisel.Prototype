@@ -25,6 +25,7 @@ public class GeneratorGraph : NodeGraph {
     void RefreshInputNodes()
     {
         // TODO: Detect when a graph is modified and only call this then
+        if (inputNodes == null) inputNodes = new List<InputNode>();
         inputNodes.Clear();
         for (int i = 0; i < nodes.Count; i++) {
             if (nodes[i] is InputNode) {
