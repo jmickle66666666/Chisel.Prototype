@@ -22,7 +22,7 @@ public class GeneratorGraph : NodeGraph {
 
     public List<InputNode> inputNodes;
 
-    void RefreshInputNodes()
+    public void RefreshInputNodes()
     {
         // TODO: Detect when a graph is modified and only call this then
         if (inputNodes == null) inputNodes = new List<InputNode>();
