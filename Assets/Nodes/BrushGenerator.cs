@@ -36,4 +36,10 @@ public class BrushGenerator : ChiselGeneratorComponent
         brushContainerAsset.SetSubMeshes(brushMeshes);
         brushContainerAsset.SetDirty();
     }
+
+    public override void UpdateGenerator()
+    {
+        generator.RefreshInputNodes();
+        base.UpdateGenerator();
+    }
 }
