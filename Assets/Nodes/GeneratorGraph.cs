@@ -13,7 +13,8 @@ public class GeneratorGraph : NodeGraph {
         for (int i = 0; i < nodes.Count; i++) {
             if (nodes[i] is BrushOutput) {
                 var output = nodes[i] as BrushOutput;
-                return output.GetInputValues<BrushMesh>("brushMesh", output.brushMesh);
+                
+                return output.GetBrushes();
             }
         }
         Debug.LogError("No valid output found for Generator Graph");
