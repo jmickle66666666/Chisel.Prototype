@@ -4,6 +4,7 @@ using UnityEngine;
 using XNode;
 using Chisel.Core;
 
+[CreateNodeMenu("Brush/Bounds")]
 public class BrushFromBounds : Node {
 
 	// Use this for initialization
